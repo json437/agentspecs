@@ -4,7 +4,7 @@
   "description": "A Claude Code plugin that turns specs into beautiful, interactive documents.",
   "type": "module",
   "bin": {
-    "agentspecs": "./dist/bin/agentspecs.js"
+    "agentspecs": "dist/bin/agentspecs.js"
   },
   "files": [
     "dist/",
@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/json437/agentspecs"
+    "url": "git+https://github.com/json437/agentspecs.git"
   },
   "license": "MIT",
   "scripts": {
