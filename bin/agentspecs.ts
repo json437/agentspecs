@@ -33,7 +33,7 @@ program
         mcpServers: {
           agentspecs: {
             command: "node",
-            args: ["node_modules/agentspecs/dist/src/server/index.js"],
+            args: ["node_modules/@json437/agentspecs/dist/src/server/index.js"],
             cwd: "."
           }
         }
@@ -47,7 +47,7 @@ program
           existing.mcpServers = existing.mcpServers || {};
           existing.mcpServers.agentspecs = {
             command: "node",
-            args: ["node_modules/agentspecs/dist/src/server/index.js"],
+            args: ["node_modules/@json437/agentspecs/dist/src/server/index.js"],
             cwd: "."
           };
           writeFileSync(mcpPath, JSON.stringify(existing, null, 2) + "\n");
@@ -71,7 +71,7 @@ program
         configurations: [{
           name: "agentspecs",
           runtimeExecutable: "node",
-          runtimeArgs: ["node_modules/agentspecs/dist/src/server/index.js", "--serve-only"],
+          runtimeArgs: ["node_modules/@json437/agentspecs/dist/src/server/index.js", "--serve-only"],
           port: 7575
         }]
       }, null, 2) + "\n");
@@ -85,7 +85,7 @@ program
           existing.configurations.push({
             name: "agentspecs",
             runtimeExecutable: "node",
-            runtimeArgs: ["node_modules/agentspecs/dist/src/server/index.js", "--serve-only"],
+            runtimeArgs: ["node_modules/@json437/agentspecs/dist/src/server/index.js", "--serve-only"],
             port: 7575
           });
           writeFileSync(launchPath, JSON.stringify(existing, null, 2) + "\n");
