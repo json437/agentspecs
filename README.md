@@ -2,6 +2,8 @@
 
 **The spec phase, visualized.** A Claude Code plugin that turns specs into beautiful, interactive documents with live preview, version history, and inline feedback.
 
+![agentspecs demo](agentspecs.gif)
+
 Before you write code, you write specs. PRDs, architecture docs, API designs, RFCs. But right now you're reading raw markdown in a terminal. agentspecs fixes that.
 
 ## What it does
