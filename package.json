@@ -1,5 +1,5 @@
 {
-  "name": "agentspecs",
+  "name": "@json437/agentspecs",
   "version": "0.1.0",
   "description": "A Claude Code plugin that turns specs into beautiful, interactive documents.",
   "type": "module",

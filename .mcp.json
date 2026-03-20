@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agentspecs": {
+      "command": "npx",
+      "args": ["tsx", "src/server/index.ts"],
+      "cwd": "."
+    }
+  }
+}

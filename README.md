@@ -19,7 +19,7 @@ Your agent writes a spec using MCP tools. agentspecs renders it as a live, inter
 
 ```bash
 cd your-project
-npm install agentspecs
+npm install @json437/agentspecs
 npx agentspecs init
 ```
 
