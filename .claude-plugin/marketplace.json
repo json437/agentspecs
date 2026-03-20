@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agentspecs",
+  "version": "1.0.0",
+  "description": "Spec documents, visualized. Live preview, version history, and inline feedback for your agent-written specs.",
+  "owner": {
+    "name": "agentspecs"
+  },
+  "plugins": [
+    {
+      "name": "agentspecs",
+      "description": "Turn specs into beautiful, interactive documents with live preview, version history, and Figma-style inline commenting.",
+      "version": "0.1.0",
+      "author": {
+        "name": "agentspecs"
+      },
+      "homepage": "https://github.com/json437/agentspecs",
+      "repository": "json437/agentspecs",
+      "license": "MIT",
+      "keywords": ["specs", "documentation", "mcp", "preview", "feedback", "prd", "rfc"],
+      "category": "productivity",
+      "source": "./"
+    }
+  ]
+}

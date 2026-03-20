@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diff — agentspecs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-elevated: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text: #f4f4f5;
+      --text-body: #d4d4d8;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #a5b4fc;
+      --accent-dim: rgba(165, 180, 252, 0.12);
+      --green: #4ade80;
+      --green-bg: rgba(74, 222, 128, 0.08);
+      --green-border: rgba(74, 222, 128, 0.2);
+      --red: #f87171;
+      --red-bg: rgba(248, 113, 113, 0.08);
+      --red-border: rgba(248, 113, 113, 0.2);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-heading: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px;
+      z-index: 9999;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 3rem 2rem; }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    header a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: color var(--transition);
+    }
+    header a:hover { color: var(--text); }
+    header a svg { width: 14px; height: 14px; }
+    h1 {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .meta-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 0.6rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+    }
+    .stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+    }
+    .stats .added { color: var(--green); font-weight: 500; }
+    .stats .removed { color: var(--red); font-weight: 500; }
+    .meta-time {
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .diff-container {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .diff-line {
+      display: flex;
+      padding: 0 1rem;
+      min-height: 1.5rem;
+      line-height: 1.5rem;
+      transition: background var(--transition);
+    }
+    .diff-line:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .diff-line-num {
+      width: 50px;
+      min-width: 50px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 1rem;
+      user-select: none;
+      opacity: 0.4;
+      font-size: 0.72rem;
+    }
+    .diff-line-content {
+      flex: 1;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .diff-add {
+      background: var(--green-bg);
+      border-left: 3px solid var(--green-border);
+    }
+    .diff-add .diff-line-content::before {
+      content: '+ ';
+      color: var(--green);
+      font-weight: 500;
+    }
+    .diff-remove {
+      background: var(--red-bg);
+      border-left: 3px solid var(--red-border);
+    }
+    .diff-remove .diff-line-content::before {
+      content: '- ';
+      color: var(--red);
+      font-weight: 500;
+    }
+    .diff-context {
+      opacity: 0.5;
+      border-left: 3px solid transparent;
+    }
+    .diff-separator {
+      background: var(--accent-dim);
+      color: var(--accent);
+      padding: 0.3rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      border-left: 3px solid transparent;
+    }
+
+    /* ─── Change summary ─── */
+    .change-summary {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .change-summary-title {
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .change-summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .change-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.82rem;
+      color: var(--text-body);
+    }
+    .change-tag {
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.15em 0.5em;
+      border-radius: 3px;
+      min-width: 56px;
+      text-align: center;
+    }
+    .change-tag-added { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+    .change-tag-removed { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+    .change-tag-changed { background: var(--accent-dim); color: var(--accent); }
+    .change-item-name {
+      font-weight: 500;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="#" id="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" /></svg>
+        Back to spec
+      </a>
+      <h1 id="title">Loading diff...</h1>
+    </header>
+    <div class="meta-bar" id="meta-bar" style="display:none">
+      <div class="stats" id="stats"></div>
+      <span class="meta-time" id="meta-time"></span>
+    </div>
+    <div class="change-summary" id="change-summary" style="display:none">
+      <div class="change-summary-title">What changed</div>
+      <div class="change-summary-list" id="change-list"></div>
+    </div>
+    <div class="diff-container" id="diff"></div>
+  </div>
+  <script>
+    const parts = location.pathname.match(/\/specs\/([^/]+)\/diff\/(\d+)\/(\d+)/);
+    if (!parts) {
+      document.getElementById('diff').innerHTML = '<div class="empty">Invalid diff URL</div>';
+    } else {
+      const [, specId, v1, v2] = parts;
+      document.getElementById('back-link').href = `/specs/${specId}`;
+      load(specId, parseInt(v1), parseInt(v2));
+    }
+
+    function timeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      if (seconds < 60) return 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      return date.toLocaleDateString();
+    }
+
+    async function load(specId, v1, v2) {
+      const [res1, res2, specRes] = await Promise.all([
+        fetch(`/api/specs/${specId}/versions/${v1}`).then(r => r.json()),
+        fetch(`/api/specs/${specId}/versions/${v2}`).then(r => r.json()),
+        fetch(`/api/specs/${specId}`).then(r => r.json()),
+      ]);
+
+      document.getElementById('title').textContent = `v${v1} → v${v2}`;
+
+      const lines1 = res1.content.split('\n');
+      const lines2 = res2.content.split('\n');
+      const diff = computeDiff(lines1, lines2);
+
+      let added = 0, removed = 0;
+      diff.forEach(d => { if (d.type === 'add') added++; if (d.type === 'remove') removed++; });
+
+      const metaBar = document.getElementById('meta-bar');
+      metaBar.style.display = 'flex';
+      document.getElementById('stats').innerHTML = `
+        <span class="added">+${added} added</span>
+        <span class="removed">−${removed} removed</span>
+      `;
+
+      // Section-level change summary
+      renderSectionChanges(res1.content, res2.content);
+
+      // Show timestamp of v2
+      const ts = specRes.meta?.versionTimestamps;
+      if (ts && ts[String(v2)]) {
+        document.getElementById('meta-time').textContent = timeAgo(new Date(ts[String(v2)]));
+      }
+
+      // Collapse context: show only 3 lines around changes
+      const CONTEXT = 3;
+      const isChange = diff.map(d => d.type !== 'context');
+      const visible = new Array(diff.length).fill(false);
+      for (let k = 0; k < diff.length; k++) {
+        if (isChange[k]) {
+          for (let c = Math.max(0, k - CONTEXT); c <= Math.min(diff.length - 1, k + CONTEXT); c++) {
+            visible[c] = true;
+          }
+        }
+      }
+
+      const container = document.getElementById('diff');
+      let html = '';
+      let skipping = false;
+      for (let k = 0; k < diff.length; k++) {
+        if (!visible[k]) {
+          if (!skipping) {
+            skipping = true;
+            html += `<div class="diff-separator">···</div>`;
+          }
+          continue;
+        }
+        skipping = false;
+        const d = diff[k];
+        const cls = d.type === 'add' ? 'diff-add' : d.type === 'remove' ? 'diff-remove' : 'diff-context';
+        html += `<div class="diff-line ${cls}">
+          <span class="diff-line-num">${d.lineNum || ''}</span>
+          <span class="diff-line-content">${esc(d.text)}</span>
+        </div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function extractSections(content) {
+      const sections = {};
+      const lines = content.split('\n');
+      let currentHeading = null;
+      let currentBody = [];
+
+      for (const line of lines) {
+        const match = line.match(/^##\s+(.+)/);
+        if (match && !line.startsWith('###')) {
+          if (currentHeading) {
+            sections[currentHeading] = currentBody.join('\n').trim();
+          }
+          currentHeading = match[1].trim();
+          currentBody = [];
+        } else if (currentHeading) {
+          currentBody.push(line);
+        }
+      }
+      if (currentHeading) {
+        sections[currentHeading] = currentBody.join('\n').trim();
+      }
+      return sections;
+    }
+
+    function renderSectionChanges(content1, content2) {
+      const sections1 = extractSections(content1);
+      const sections2 = extractSections(content2);
+      const allKeys = new Set([...Object.keys(sections1), ...Object.keys(sections2)]);
+      const changes = [];
+
+      for (const key of allKeys) {
+        const in1 = key in sections1;
+        const in2 = key in sections2;
+        if (in2 && !in1) {
+          changes.push({ name: key, type: 'added' });
+        } else if (in1 && !in2) {
+          changes.push({ name: key, type: 'removed' });
+        } else if (in1 && in2 && sections1[key] !== sections2[key]) {
+          changes.push({ name: key, type: 'changed' });
+        }
+      }
+
+      if (changes.length === 0) return;
+
+      const container = document.getElementById('change-summary');
+      const list = document.getElementById('change-list');
+      container.style.display = 'block';
+
+      // Sort: added first, then changed, then removed
+      const order = { added: 0, changed: 1, removed: 2 };
+      changes.sort((a, b) => order[a.type] - order[b.type]);
+
+      list.innerHTML = changes.map(c => `
+        <div class="change-item">
+          <span class="change-tag change-tag-${c.type}">${c.type}</span>
+          <span class="change-item-name">${esc(c.name)}</span>
+        </div>
+      `).join('');
+    }
+
+    // Simple LCS-based diff
+    function computeDiff(a, b) {
+      const n = a.length, m = b.length;
+      const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+      for (let i = 1; i <= n; i++)
+        for (let j = 1; j <= m; j++)
+          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+
+      const stack = [];
+      let i = n, j = m;
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && a[i-1] === b[j-1]) {
+          stack.push({ type: 'context', text: a[i-1], lineNum: j });
+          i--; j--;
+        } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+          stack.push({ type: 'add', text: b[j-1], lineNum: j });
+          j--;
+        } else {
+          stack.push({ type: 'remove', text: a[i-1], lineNum: i });
+          i--;
+        }
+      }
+      return stack.reverse();
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>

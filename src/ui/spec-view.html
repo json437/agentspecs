@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentspecs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-secondary: #111113;
+      --bg-tertiary: #18181b;
+      --bg-elevated: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text: #f4f4f5;
+      --text-body: #d4d4d8;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #a5b4fc;
+      --accent-dim: rgba(165, 180, 252, 0.12);
+      --accent-glow: rgba(165, 180, 252, 0.08);
+      --claude-orange: #e87b35;
+      --claude-orange-dim: rgba(232, 123, 53, 0.15);
+      --green: #4ade80;
+      --green-dim: rgba(74, 222, 128, 0.15);
+      --yellow: #fbbf24;
+      --yellow-dim: rgba(251, 191, 36, 0.15);
+      --red: #f87171;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-heading: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Subtle noise texture overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px;
+      z-index: 9999;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      width: 280px;
+      min-width: 280px;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 2rem 1.5rem;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .sidebar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      margin-bottom: 1.75rem;
+      transition: color var(--transition);
+    }
+    .sidebar-back:hover { color: var(--text); }
+    .sidebar-back svg { width: 14px; height: 14px; }
+
+    .sidebar-title {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .sidebar-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2em 0.6em;
+      border-radius: 4px;
+    }
+    .badge-draft { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+    .badge-in_review { background: var(--accent-dim); color: var(--accent); }
+    .badge-approved { background: var(--green-dim); color: var(--green); }
+    .badge-implementing { background: var(--yellow-dim); color: var(--yellow); }
+    .badge-done { background: var(--green-dim); color: var(--green); }
+    .badge-rejected { background: rgba(248,113,113,0.15); color: var(--red); }
+
+    .toc-label {
+      font-family: var(--font-heading);
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .toc { flex: 1; }
+    .toc a {
+      display: block;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      padding: 0.3rem 0.75rem;
+      margin: 0 -0.75rem;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+      line-height: 1.4;
+    }
+    .toc a:hover {
+      color: var(--text);
+      background: var(--bg-elevated);
+    }
+    .toc a.depth-2 { padding-left: 0.75rem; font-weight: 500; color: var(--text-secondary); }
+    .toc a.depth-3 { padding-left: 1.75rem; }
+    .toc a.depth-4 { padding-left: 2.75rem; font-size: 0.74rem; }
+
+    /* ─── Main Content ─── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+    }
+    .main::-webkit-scrollbar { width: 6px; }
+    .main::-webkit-scrollbar-track { background: transparent; }
+    .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+    .main::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+    .main-inner {
+      max-width: 820px;
+      width: 100%;
+      padding: 3rem 3rem 6rem;
+    }
+
+    /* ─── Version bar ─── */
+    .version-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      padding: 0.6rem 1rem;
+      background: var(--bg-elevated);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .version-bar select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+    .version-bar select:hover { border-color: var(--border-hover); }
+    .version-bar a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity var(--transition);
+    }
+    .version-bar a:hover { opacity: 0.8; }
+
+    /* ─── Typography ─── */
+    .spec-body {
+      color: var(--text-body);
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+    .spec-body > *:first-child { margin-top: 0; }
+
+    .spec-body h1 {
+      font-family: var(--font-heading);
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      color: var(--text);
+      margin: 0 0 1.25rem;
+    }
+    .spec-body h2 {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      color: var(--text);
+      margin: 3.5rem 0 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .spec-body h3 {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--text);
+      margin: 2.5rem 0 0.75rem;
+    }
+    .spec-body h4 {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin: 2rem 0 0.5rem;
+    }
+
+    .spec-body p {
+      margin: 1rem 0;
+    }
+
+    .spec-body a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color var(--transition);
+    }
+    .spec-body a:hover { border-bottom-color: var(--accent); }
+
+    .spec-body strong { color: var(--text); font-weight: 600; }
+    .spec-body em { color: var(--text-body); }
+
+    .spec-body blockquote {
+      margin: 1.5rem 0;
+      padding: 1.1rem 1.4rem;
+      background: var(--bg-elevated);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      color: var(--text-body);
+      font-style: italic;
+    }
+    .spec-body blockquote p { margin: 0; }
+
+    .spec-body ul, .spec-body ol {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    .spec-body li {
+      margin: 0.45rem 0;
+    }
+    .spec-body li::marker {
+      color: var(--text-muted);
+    }
+
+    .spec-body hr {
+      border: none;
+      height: 1px;
+      background: var(--border);
+      margin: 3rem 0;
+    }
+
+    /* Inline code */
+    .spec-body code {
+      font-family: var(--font-mono);
+      font-size: 0.84em;
+      background: rgba(165, 180, 252, 0.08);
+      padding: 0.18em 0.45em;
+      border-radius: 5px;
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    /* Code blocks */
+    .spec-body pre {
+      margin: 1.5rem 0;
+      padding: 1.25rem 1.5rem;
+      background: #0c0c0e !important;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+    }
+    .spec-body pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-body);
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    /* Tables */
+    .spec-body table {
+      width: 100%;
+      margin: 1.5rem 0;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-size: 0.88rem;
+    }
+    .spec-body thead {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .spec-body th {
+      font-family: var(--font-heading);
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .spec-body td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-body);
+    }
+    .spec-body tbody tr:hover {
+      background: rgba(255, 255, 255, 0.025);
+    }
+    .spec-body td code {
+      font-size: 0.82em;
+    }
+
+    /* Images */
+    .spec-body img {
+      max-width: 100%;
+      border-radius: var(--radius);
+      margin: 1rem 0;
+    }
+
+    /* Mermaid */
+    .mermaid {
+      text-align: center;
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* ─── Comment Mode (Figma-style) ─── */
+
+    /* Comment mode banner */
+    .comment-mode-banner {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-60px);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      border-radius: 8px;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    .comment-mode-banner.active {
+      transform: translateX(-50%) translateY(0);
+    }
+    .comment-mode-banner kbd {
+      background: rgba(255,255,255,0.2);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+    }
+
+    /* When in comment mode, change cursor */
+    body.comment-mode .main {
+      cursor: crosshair;
+    }
+    body.comment-mode .spec-body * {
+      cursor: crosshair !important;
+    }
+
+    /* Floating comment pins */
+    .comment-marker {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50% 50% 50% 0;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      cursor: pointer;
+      z-index: 50;
+      transform: rotate(-45deg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: all 0.15s ease;
+      animation: dropIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .comment-marker:hover {
+      transform: rotate(-45deg) scale(1.15);
+      box-shadow: 0 4px 16px rgba(165, 180, 252, 0.3);
+    }
+    .comment-marker.resolved {
+      background: var(--text-muted);
+      opacity: 0.5;
+    }
+    .comment-marker-num {
+      transform: rotate(45deg);
+    }
+
+    @keyframes dropIn {
+      from { opacity: 0; transform: rotate(-45deg) scale(0.3); }
+      to { opacity: 1; transform: rotate(-45deg) scale(1); }
+    }
+
+    /* Floating comment popover */
+    .comment-popover {
+      position: absolute;
+      width: 320px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-hover);
+      border-radius: 12px;
+      z-index: 100;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      animation: fadeIn 0.15s ease;
+      overflow: hidden;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .comment-popover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .comment-popover-section {
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.65rem;
+    }
+    .comment-popover-resolve {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.68rem;
+      font-family: var(--font-body);
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+      transition: all var(--transition);
+    }
+    .comment-popover-resolve:hover {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+    .comment-popover-body {
+      padding: 0.75rem 0.85rem;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .comment-popover-body::-webkit-scrollbar { width: 3px; }
+    .comment-popover-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .comment-msg {
+      padding: 0.4rem 0;
+    }
+    .comment-msg + .comment-msg {
+      border-top: 1px solid rgba(255,255,255,0.04);
+      margin-top: 0.3rem;
+      padding-top: 0.5rem;
+    }
+    .comment-msg-author {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.15rem;
+    }
+    .comment-msg-author.human { color: var(--accent); }
+    .comment-msg-author.agent { color: var(--claude-orange); }
+    .comment-msg-text {
+      font-size: 0.82rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+    .comment-msg-time {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    /* Reply input at bottom of popover */
+    .comment-reply-box {
+      display: flex;
+      gap: 0.4rem;
+      padding: 0.6rem 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+    .comment-reply-input {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.78rem;
+      font-family: var(--font-body);
+      resize: none;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .comment-reply-input:focus {
+      border-color: var(--accent);
+    }
+    .comment-reply-send {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: background var(--transition);
+    }
+    .comment-reply-send:hover { background: #6366f1; }
+
+    /* Comment thread + resolve button */
+    .comment-thread {
+      position: relative;
+    }
+    .comment-thread + .comment-thread {
+      border-top: 1px solid var(--border);
+      margin-top: 0.4rem;
+      padding-top: 0.5rem;
+    }
+    .comment-resolve-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.65rem;
+      font-family: var(--font-body);
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+      margin-top: 0.25rem;
+      transition: all var(--transition);
+    }
+    .comment-resolve-btn:hover {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+
+    /* ─── Feedback Section ─── */
+    .feedback-section {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+    .feedback-section h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    .feedback-item {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      transition: border-color var(--transition);
+    }
+    .feedback-item:hover {
+      border-color: var(--border-hover);
+    }
+    .feedback-item-section {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .feedback-item-comment {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .feedback-item-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+    .feedback-resolved { opacity: 0.4; }
+
+    /* ─── Feedback Modal ─── */
+    .feedback-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.96);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-hover);
+      border-radius: 14px;
+      padding: 1.75rem;
+      z-index: 100;
+      width: 440px;
+      box-shadow:
+        0 24px 48px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+      opacity: 0;
+    }
+    .feedback-modal.active {
+      display: block;
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    .feedback-modal h4 {
+      font-family: var(--font-heading);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .feedback-modal h4 span {
+      color: var(--accent);
+    }
+    .feedback-modal textarea {
+      width: 100%;
+      height: 100px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      resize: vertical;
+      transition: border-color var(--transition);
+      line-height: 1.5;
+    }
+    .feedback-modal textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .feedback-modal button {
+      margin-top: 0.75rem;
+      padding: 0.55rem 1.25rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+    .feedback-modal button:hover {
+      background: #6366f1;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .feedback-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 99;
+    }
+    .feedback-overlay.active { display: block; }
+
+    /* ─── Live dot ─── */
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      margin-right: 0.25rem;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(74, 222, 128, 0.4); }
+      50% { opacity: 0.5; box-shadow: 0 0 4px rgba(74, 222, 128, 0.2); }
+    }
+
+    /* ─── Version timeline ─── */
+    .version-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.4rem 0;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .version-entry-dot {
+      width: 6px;
+      height: 6px;
+      min-width: 6px;
+      border-radius: 50%;
+      background: var(--border-hover);
+      margin-top: 0.35rem;
+    }
+    .version-entry:first-child .version-entry-dot {
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+    .version-entry-label {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .version-entry a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.7rem;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .version-entry:hover a { opacity: 1; }
+    .version-entry-git {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+    .version-entry-git .branch {
+      color: var(--accent);
+      opacity: 0.6;
+    }
+
+    /* ─── Linked commits ─── */
+    .linked-commits {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .linked-commit {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 0.25rem 0;
+    }
+    .linked-commit code {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      background: var(--bg-elevated);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      color: var(--accent);
+    }
+
+    /* ─── Comment count badge ─── */
+    .comment-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 0.2rem 0.5rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .comment-badge:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+    .comment-badge.has-comments { color: var(--accent); border-color: var(--accent-dim); }
+    .comment-badge.all-resolved { color: var(--green); border-color: var(--green-dim); }
+    .comment-badge svg { width: 12px; height: 12px; }
+
+    /* ─── Revert button ─── */
+    .revert-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 0.2rem 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-left: auto;
+    }
+    .revert-btn:hover { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-dim); }
+    .revert-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ─── Mobile hamburger ─── */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 300;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+    .sidebar-toggle:hover { color: var(--text); border-color: var(--border-hover); }
+    .sidebar-toggle svg { width: 18px; height: 18px; display: block; }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 199;
+    }
+
+    /* ─── Scrollbar (main) ─── */
+    .main {
+      scrollbar-gutter: stable;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      body { display: block; }
+      .sidebar {
+        position: fixed;
+        left: -300px;
+        top: 0;
+        height: 100vh;
+        z-index: 200;
+        background: var(--bg);
+        transition: left 0.25s ease;
+        box-shadow: none;
+      }
+      .sidebar.open {
+        left: 0;
+        box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+      }
+      .sidebar-toggle { display: block; }
+      .sidebar-overlay.open { display: block; }
+      .main { height: 100vh; overflow-y: auto; }
+      .main-inner { padding: 3rem 1.5rem 4rem; }
+      .version-bar { flex-wrap: wrap; gap: 0.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5A.75.75 0 012 10z" clip-rule="evenodd" /></svg>
+  </button>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <a href="/" class="sidebar-back">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" /></svg>
+      All specs
+    </a>
+    <div class="sidebar-title" id="sidebar-title">Loading...</div>
+    <div class="sidebar-meta" id="sidebar-meta"></div>
+    <div class="toc-label">On this page</div>
+    <nav class="toc" id="toc"></nav>
+    <div id="version-timeline" style="display:none; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+      <div class="toc-label">Version history</div>
+      <div id="version-list"></div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="main-inner">
+      <div class="version-bar" id="version-bar" style="display:none">
+        <span class="live-dot"></span> Live
+        <span>Version:</span>
+        <select id="version-select"></select>
+        <a href="#" id="diff-link">View diff</a>
+        <span class="comment-badge" id="comment-badge" title="Press C to comment">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2c-2.236 0-4.43.18-6.57.524C1.993 2.755 1 3.952 1 5.286V7.78c0 1.334.993 2.53 2.43 2.762.487.078.974.144 1.462.198a.876.876 0 01.646.399l2.116 3.527a.396.396 0 00.692 0l2.116-3.527a.877.877 0 01.646-.399c.488-.054.975-.12 1.462-.198C13.007 10.31 14 9.114 14 7.78V5.286c0-1.334-.993-2.53-2.43-2.762A41.645 41.645 0 0010 2z" clip-rule="evenodd" /></svg>
+          <span id="comment-count">0</span>
+        </span>
+        <button class="revert-btn" id="revert-btn" disabled title="Revert to selected version">Revert</button>
+      </div>
+      <article class="spec-body" id="content">Loading...</article>
+      <section class="feedback-section" id="feedback-section" style="display:none">
+        <h3>Feedback</h3>
+        <div id="feedback-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="comment-mode-banner" id="comment-banner">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2c-2.236 0-4.43.18-6.57.524C1.993 2.755 1 3.952 1 5.286V7.78c0 1.334.993 2.53 2.43 2.762.487.078.974.144 1.462.198a.876.876 0 01.646.399l2.116 3.527a.396.396 0 00.692 0l2.116-3.527a.877.877 0 01.646-.399c.488-.054.975-.12 1.462-.198C13.007 10.31 14 9.114 14 7.78V5.286c0-1.334-.993-2.53-2.43-2.762A41.645 41.645 0 0010 2z" clip-rule="evenodd" /></svg>
+    Comment mode — click anywhere to comment <kbd>Esc</kbd> to exit
+  </div>
+
+  <div class="feedback-overlay" id="fb-overlay"></div>
+  <div class="feedback-modal" id="fb-modal">
+    <h4>Feedback on <span id="fb-section-name"></span></h4>
+    <textarea id="fb-text" placeholder="What's on your mind..."></textarea>
+    <button id="fb-submit">Submit feedback</button>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+
+    const specId = location.pathname.split('/specs/')[1]?.split('/')[0];
+    let currentSpec = null;
+
+    const renderer = new marked.Renderer();
+    const origCode = renderer.code;
+    renderer.code = function({ text, lang }) {
+      if (lang === 'mermaid') {
+        return `<div class="mermaid">${text}</div>`;
+      }
+      return origCode.call(this, { text, lang });
+    };
+    marked.setOptions({ renderer, gfm: true, breaks: false });
+
+    function timeAgo(date) {
+      const now = new Date();
+      const seconds = Math.floor((now - date) / 1000);
+      if (seconds < 60) return 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      return date.toLocaleDateString();
+    }
+
+    async function loadSpec() {
+      const res = await fetch(`/api/specs/${specId}`);
+      if (!res.ok) {
+        document.getElementById('content').innerHTML = '<h1>Spec not found</h1>';
+        return;
+      }
+      currentSpec = await res.json();
+      render();
+      loadFeedback();
+    }
+
+    function render() {
+      const { content, meta } = currentSpec;
+      document.title = `${meta.title} — agentspecs`;
+
+      document.getElementById('sidebar-title').textContent = meta.title;
+      const updatedDate = new Date(meta.updatedAt);
+      document.getElementById('sidebar-meta').innerHTML = `
+        <span class="badge badge-${meta.status}">${meta.status.replace('_', ' ')}</span>
+        <span>v${meta.version} · ${timeAgo(updatedDate)}</span>
+      `;
+
+      const html = marked.parse(content);
+      document.getElementById('content').innerHTML = html;
+
+      // (comment markers are rendered by loadFeedback)
+
+      // Render mermaid diagrams
+      document.querySelectorAll('.mermaid').forEach(async (el, i) => {
+        try {
+          const { svg } = await mermaid.render(`mermaid-${i}`, el.textContent);
+          el.innerHTML = svg;
+        } catch (e) {
+          el.innerHTML = `<pre style="color:var(--red)">Mermaid error: ${e.message}</pre>`;
+        }
+      });
+
+      // Build TOC
+      const headings = document.getElementById('content').querySelectorAll('h2, h3, h4');
+      const toc = document.getElementById('toc');
+      toc.innerHTML = '';
+      headings.forEach(h => {
+        const id = cleanHeadingText(h).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        h.id = id;
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.textContent = cleanHeadingText(h);
+        a.className = `depth-${h.tagName[1]}`;
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        toc.appendChild(a);
+      });
+
+      // Version bar
+      const bar = document.getElementById('version-bar');
+      bar.style.display = 'flex';
+      const select = document.getElementById('version-select');
+      select.innerHTML = '';
+      const ts = meta.versionTimestamps || {};
+      for (let i = meta.version; i >= 1; i--) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const vTime = ts[String(i)] ? timeAgo(new Date(ts[String(i)])) : '';
+        opt.textContent = vTime ? `v${i} · ${vTime}` : `v${i}`;
+        if (i === meta.version) opt.selected = true;
+        select.appendChild(opt);
+      }
+
+      const diffLink = document.getElementById('diff-link');
+      if (meta.version > 1) {
+        diffLink.href = `/specs/${specId}/diff/${meta.version - 1}/${meta.version}`;
+        diffLink.style.display = 'inline';
+      } else {
+        diffLink.style.display = 'none';
+      }
+
+      // Version timeline in sidebar
+      if (meta.version > 0) {
+        const timeline = document.getElementById('version-timeline');
+        const list = document.getElementById('version-list');
+        timeline.style.display = 'block';
+        list.innerHTML = '';
+        const gitInfo = meta.versionGit || {};
+        for (let i = meta.version; i >= 1; i--) {
+          const vTime = ts[String(i)] ? timeAgo(new Date(ts[String(i)])) : '';
+          const diffHtml = i > 1 ? ` <a href="/specs/${specId}/diff/${i-1}/${i}">diff</a>` : '';
+          const git = gitInfo[String(i)];
+          const gitHtml = git ? `<div class="version-entry-git"><span class="branch">${esc(git.branch)}</span> ${esc(git.commit)}</div>` : '';
+          list.innerHTML += `<div class="version-entry">
+            <span class="version-entry-dot"></span>
+            <span><span class="version-entry-label">v${i}</span> ${vTime}${diffHtml}${gitHtml}</span>
+          </div>`;
+        }
+
+        // Linked commits
+        if (meta.linkedCommits && meta.linkedCommits.length > 0) {
+          list.innerHTML += `<div class="linked-commits">
+            <div class="toc-label">Linked commits</div>
+            ${meta.linkedCommits.map(c => `<div class="linked-commit"><code>${esc(c)}</code></div>`).join('')}
+          </div>`;
+        }
+      }
+
+      // (comment markers rendered by loadFeedback)
+    }
+
+    // ─── Figma-style Comment System ───
+
+    let allFeedback = [];
+    let commentMode = false;
+    let activePopover = null;
+
+    // Get clean heading text (without injected elements)
+    function cleanHeadingText(el) {
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('.comment-marker').forEach(p => p.remove());
+      return clone.textContent.trim();
+    }
+
+    // Find nearest section heading above an element
+    function getNearestHeading(el) {
+      let node = el;
+      while (node && node !== document.getElementById('content')) {
+        if (/^H[2-4]$/.test(node.tagName)) return cleanHeadingText(node);
+        let prev = node.previousElementSibling;
+        while (prev) {
+          if (/^H[2-4]$/.test(prev.tagName)) return cleanHeadingText(prev);
+          prev = prev.previousElementSibling;
+        }
+        node = node.parentElement;
+      }
+      return 'General';
+    }
+
+    // ── Comment Mode Toggle ──
+    function toggleCommentMode() {
+      commentMode = !commentMode;
+      document.body.classList.toggle('comment-mode', commentMode);
+      document.getElementById('comment-banner').classList.toggle('active', commentMode);
+      if (!commentMode) closePopover();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+      if (e.key === 'c' || e.key === 'C') {
+        if (!e.ctrlKey && !e.metaKey) toggleCommentMode();
+      }
+      if (e.key === 'Escape') {
+        if (activePopover) { closePopover(); return; }
+        if (commentMode) toggleCommentMode();
+        closeFeedbackModal();
+      }
+    });
+
+    // ── Click to place comment in comment mode ──
+    document.querySelector('.main').addEventListener('click', (e) => {
+      if (!commentMode) return;
+      // Don't trigger on markers or popovers
+      if (e.target.closest('.comment-marker') || e.target.closest('.comment-popover')) return;
+
+      const contentEl = document.getElementById('content');
+      const target = e.target.closest('.spec-body p, .spec-body h2, .spec-body h3, .spec-body h4, .spec-body li, .spec-body blockquote, .spec-body td');
+      if (!target) return;
+
+      const section = getNearestHeading(target);
+      feedbackSection = section;
+      document.getElementById('fb-section-name').textContent = section;
+      document.getElementById('fb-text').value = '';
+      document.getElementById('fb-modal').classList.add('active');
+      document.getElementById('fb-overlay').classList.add('active');
+      setTimeout(() => document.getElementById('fb-text').focus(), 50);
+
+      // Exit comment mode after placing
+      toggleCommentMode();
+    });
+
+    // ── Render comment markers on the spec ──
+    function renderCommentMarkers() {
+      // Remove old markers and popovers
+      document.querySelectorAll('.comment-marker, .comment-popover').forEach(el => el.remove());
+      if (!allFeedback.length) return;
+
+      const content = document.getElementById('content');
+      const unresolved = allFeedback.filter(f => !f.resolved);
+
+      // Group by section, place one marker per section on the matching heading
+      const bySection = {};
+      unresolved.forEach((f, i) => {
+        if (!bySection[f.section]) bySection[f.section] = [];
+        bySection[f.section].push(f);
+      });
+
+      let markerNum = 1;
+      const headings = content.querySelectorAll('h2, h3, h4');
+      headings.forEach(h => {
+        const text = cleanHeadingText(h);
+        const items = bySection[text];
+        if (!items || items.length === 0) return;
+
+        const marker = document.createElement('div');
+        marker.className = 'comment-marker';
+        marker.innerHTML = `<span class="comment-marker-num">${markerNum}</span>`;
+        marker.style.position = 'absolute';
+        marker.style.left = '-44px';
+        marker.style.top = '2px';
+        marker.dataset.section = text;
+        marker.dataset.markerNum = markerNum;
+
+        marker.addEventListener('click', (e) => {
+          e.stopPropagation();
+          togglePopover(marker, items, text);
+        });
+
+        h.style.position = 'relative';
+        h.appendChild(marker);
+        markerNum++;
+      });
+    }
+
+    // ── Floating Popover ──
+    function togglePopover(marker, items, section) {
+      closePopover();
+
+      const popover = document.createElement('div');
+      popover.className = 'comment-popover';
+      popover.style.left = '40px';
+      popover.style.top = '-8px';
+
+      popover.innerHTML = `
+        <div class="comment-popover-header">
+          <span class="comment-popover-section">${esc(section)}</span>
+          <span>${items.length} comment${items.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="comment-popover-body">
+          ${items.map(f => {
+            const replies = (f.replies || []).map(r => `
+              <div class="comment-msg">
+                <div class="comment-msg-author ${r.author || 'human'}">${r.author === 'agent' ? 'Claude' : 'You'}</div>
+                <div class="comment-msg-text">${esc(r.comment)}</div>
+                <div class="comment-msg-time">${timeAgo(new Date(r.createdAt))}</div>
+              </div>
+            `).join('');
+            return `
+              <div class="comment-thread" data-feedback-id="${f.id}">
+                <div class="comment-msg">
+                  <div class="comment-msg-author ${f.author || 'human'}">${f.author === 'agent' ? 'Claude' : 'You'}</div>
+                  <div class="comment-msg-text">${esc(f.comment)}</div>
+                  <div class="comment-msg-time">${timeAgo(new Date(f.createdAt))}</div>
+                </div>
+                ${replies}
+                <button class="comment-resolve-btn" data-feedback-id="${f.id}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" /></svg>
+                  Resolve
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="comment-reply-box">
+          <input class="comment-reply-input" placeholder="Reply..." />
+          <button class="comment-reply-send">Send</button>
+        </div>
+      `;
+
+      marker.parentElement.appendChild(popover);
+      activePopover = popover;
+
+      // Resolve handlers
+      popover.querySelectorAll('.comment-resolve-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const fId = btn.dataset.feedbackId;
+          await fetch(`/api/specs/${specId}/feedback/${fId}/resolve`, { method: 'POST' });
+          closePopover();
+          loadFeedback();
+        });
+      });
+
+      // Reply handler
+      const input = popover.querySelector('.comment-reply-input');
+      const sendBtn = popover.querySelector('.comment-reply-send');
+      const firstFeedbackId = items[0]?.id;
+
+      async function sendReply() {
+        const text = input.value.trim();
+        if (!text || !firstFeedbackId) return;
+        await fetch(`/api/specs/${specId}/feedback/${firstFeedbackId}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ comment: text, author: 'human' }),
+        });
+        input.value = '';
+        loadFeedback();
+      }
+
+      sendBtn.addEventListener('click', sendReply);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); }
+      });
+
+      // Focus input
+      setTimeout(() => input.focus(), 50);
+
+      // Close when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', closePopoverOnOutsideClick);
+      }, 10);
+    }
+
+    function closePopoverOnOutsideClick(e) {
+      if (activePopover && !e.target.closest('.comment-popover') && !e.target.closest('.comment-marker')) {
+        closePopover();
+      }
+    }
+
+    function closePopover() {
+      if (activePopover) {
+        activePopover.remove();
+        activePopover = null;
+        document.removeEventListener('click', closePopoverOnOutsideClick);
+      }
+    }
+
+    // ── Load feedback + render markers ──
+    async function loadFeedback() {
+      const res = await fetch(`/api/specs/${specId}/feedback`);
+      allFeedback = await res.json();
+
+      renderCommentMarkers();
+      updateCommentBadge();
+
+      // Bottom summary
+      const section = document.getElementById('feedback-section');
+      const list = document.getElementById('feedback-list');
+      const unresolved = allFeedback.filter(f => !f.resolved);
+      const resolved = allFeedback.filter(f => f.resolved);
+
+      if (unresolved.length === 0 && resolved.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+
+      const headerText = unresolved.length > 0
+        ? `${unresolved.length} unresolved comment${unresolved.length > 1 ? 's' : ''} · press <kbd style="background:var(--bg-elevated);padding:0.1em 0.4em;border-radius:3px;font-family:var(--font-mono);font-size:0.72rem">C</kbd> to comment`
+        : 'All comments resolved ✓';
+
+      const unresolvedHtml = unresolved.map(f => `
+        <div class="feedback-item">
+          <div class="feedback-item-section">${esc(f.section)}</div>
+          <div class="feedback-item-comment">${esc(f.comment)}</div>
+          <div class="feedback-item-meta">${timeAgo(new Date(f.createdAt))}${f.replies?.length ? ` · ${f.replies.length} repl${f.replies.length > 1 ? 'ies' : 'y'}` : ''}</div>
+        </div>
+      `).join('');
+
+      const resolvedToggle = resolved.length > 0
+        ? `<button onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'; this.textContent = this.nextElementSibling.style.display === 'none' ? 'Show ${resolved.length} resolved' : 'Hide resolved'" style="background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:4px;padding:0.2rem 0.6rem;font-size:0.72rem;font-family:var(--font-body);cursor:pointer;margin-top:0.75rem">Show ${resolved.length} resolved</button>
+          <div style="display:none">${resolved.map(f => `
+            <div class="feedback-item feedback-resolved" style="opacity:0.45;margin-top:0.5rem">
+              <div class="feedback-item-section" style="text-decoration:line-through">${esc(f.section)}</div>
+              <div class="feedback-item-comment" style="text-decoration:line-through">${esc(f.comment)}</div>
+              <div class="feedback-item-meta">${timeAgo(new Date(f.createdAt))} · resolved${f.replies?.length ? ` · ${f.replies.length} repl${f.replies.length > 1 ? 'ies' : 'y'}` : ''}</div>
+            </div>
+          `).join('')}</div>`
+        : '';
+
+      list.innerHTML = `<div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem">${headerText}</div>` + unresolvedHtml + resolvedToggle;
+    }
+
+    // ── Feedback Modal (used by comment mode click) ──
+    let feedbackSection = '';
+
+    function closeFeedbackModal() {
+      document.getElementById('fb-modal').classList.remove('active');
+      document.getElementById('fb-overlay').classList.remove('active');
+    }
+
+    document.getElementById('fb-overlay').addEventListener('click', closeFeedbackModal);
+
+    document.getElementById('fb-submit').addEventListener('click', async () => {
+      const comment = document.getElementById('fb-text').value.trim();
+      if (!comment) return;
+      await fetch(`/api/specs/${specId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: feedbackSection, comment }),
+      });
+      closeFeedbackModal();
+      loadFeedback();
+    });
+
+    document.getElementById('version-select').addEventListener('change', async (e) => {
+      const v = parseInt(e.target.value);
+      const revertBtn = document.getElementById('revert-btn');
+      if (v === currentSpec.meta.version) {
+        revertBtn.disabled = true;
+        loadSpec();
+        return;
+      }
+      revertBtn.disabled = false;
+      const res = await fetch(`/api/specs/${specId}/versions/${v}`);
+      const data = await res.json();
+      document.getElementById('content').innerHTML = marked.parse(data.content);
+    });
+
+    // Revert to version
+    document.getElementById('revert-btn').addEventListener('click', async () => {
+      const v = parseInt(document.getElementById('version-select').value);
+      if (v === currentSpec.meta.version) return;
+      if (!confirm(`Revert to v${v}? This creates a new version with the old content.`)) return;
+      await fetch(`/api/specs/${specId}/revert/${v}`, { method: 'POST' });
+      loadSpec();
+    });
+
+    // Comment badge click → toggle comment mode
+    document.getElementById('comment-badge').addEventListener('click', toggleCommentMode);
+
+    // Update comment badge count
+    function updateCommentBadge() {
+      const unresolved = allFeedback.filter(f => !f.resolved).length;
+      const resolved = allFeedback.filter(f => f.resolved).length;
+      const badge = document.getElementById('comment-badge');
+      const countEl = document.getElementById('comment-count');
+
+      if (unresolved > 0) {
+        countEl.textContent = unresolved;
+        badge.classList.add('has-comments');
+        badge.classList.remove('all-resolved');
+      } else if (resolved > 0) {
+        countEl.textContent = '✓';
+        badge.classList.remove('has-comments');
+        badge.classList.add('all-resolved');
+      } else {
+        countEl.textContent = '0';
+        badge.classList.remove('has-comments', 'all-resolved');
+      }
+    }
+
+    // ── Mobile sidebar toggle ──
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('open');
+    });
+    document.getElementById('sidebar-overlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    });
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    const ws = new WebSocket(`ws://${location.host}`);
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.event === 'spec:updated' && msg.data.specId === specId) loadSpec();
+      if (msg.event === 'feedback:added' && msg.data.specId === specId) loadFeedback();
+      if (msg.event === 'feedback:replied' && msg.data.specId === specId) loadFeedback();
+      if (msg.event === 'feedback:resolved' && msg.data.specId === specId) loadFeedback();
+    };
+
+    loadSpec();
+  </script>
+</body>
+</html>

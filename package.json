@@ -1,0 +1,56 @@
+{
+  "name": "agentspecs",
+  "version": "0.1.0",
+  "description": "A Claude Code plugin that turns specs into beautiful, interactive documents.",
+  "type": "module",
+  "bin": {
+    "agentspecs": "./dist/bin/agentspecs.js"
+  },
+  "files": [
+    "dist/",
+    "src/ui/",
+    ".claude-plugin/",
+    "hooks/",
+    "LICENSE"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "mcp",
+    "specs",
+    "documentation",
+    "ai-agents",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/json437/agentspecs"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsx watch src/server/index.ts",
+    "build": "tsc && chmod +x dist/bin/agentspecs.js",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/src/server/index.js",
+    "serve": "node dist/src/server/index.js --serve-only"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.1",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "chokidar": "^4.0.3",
+    "commander": "^13.1.0",
+    "hono": "^4.7.6",
+    "open": "^10.1.0",
+    "ws": "^8.18.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

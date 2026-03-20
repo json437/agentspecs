@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentspecs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-elevated: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text: #f4f4f5;
+      --text-body: #d4d4d8;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #a5b4fc;
+      --accent-dim: rgba(165, 180, 252, 0.12);
+      --green: #4ade80;
+      --green-dim: rgba(74, 222, 128, 0.15);
+      --yellow: #fbbf24;
+      --yellow-dim: rgba(251, 191, 36, 0.15);
+      --red: #f87171;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-heading: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px;
+      z-index: 9999;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 4rem 2rem; }
+
+    header { margin-bottom: 2rem; }
+    .logo {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .logo span { color: var(--accent); }
+    .logo-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      font-weight: 400;
+    }
+
+    /* ─── Toolbar ─── */
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 180px;
+      background: var(--bg-elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.75rem 0.5rem 2rem;
+      font-size: 0.82rem;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color var(--transition);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20' fill='%2371717a'%3E%3Cpath fill-rule='evenodd' d='M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z' clip-rule='evenodd'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 0.6rem center;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .filter-btn {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.75rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: all var(--transition);
+    }
+    .filter-btn:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+    .filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+    .sort-select {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.6rem;
+      font-size: 0.75rem;
+      font-family: var(--font-body);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .result-count {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .empty p + p { margin-top: 0.5rem; }
+    .empty code {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.82em;
+      color: var(--text-secondary);
+    }
+
+    .spec-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .spec-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      transition: all var(--transition);
+    }
+    .spec-card:hover {
+      border-color: var(--border-hover);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    }
+    .spec-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.3rem;
+    }
+    .spec-card-title {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+    .badge {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2em 0.6em;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .badge-draft { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+    .badge-in_review { background: var(--accent-dim); color: var(--accent); }
+    .badge-approved { background: var(--green-dim); color: var(--green); }
+    .badge-implementing { background: var(--yellow-dim); color: var(--yellow); }
+    .badge-done { background: var(--green-dim); color: var(--green); }
+    .badge-rejected { background: rgba(248,113,113,0.15); color: var(--red); }
+    .spec-card-meta {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .spec-card-template {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 0.1em 0.4em;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 2rem 1rem; }
+      .toolbar { flex-direction: column; }
+      .search-input { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo"><span>agent</span>specs</div>
+      <div class="logo-sub">The spec phase, visualized.</div>
+    </header>
+    <div class="toolbar" id="toolbar" style="display:none">
+      <input type="text" class="search-input" id="search" placeholder="Search specs..." />
+      <div id="filter-buttons"></div>
+      <select class="sort-select" id="sort">
+        <option value="updated">Recently updated</option>
+        <option value="created">Recently created</option>
+        <option value="title">Alphabetical</option>
+        <option value="version">Most versions</option>
+      </select>
+    </div>
+    <div class="result-count" id="result-count"></div>
+    <div id="content">
+      <div class="empty">Loading...</div>
+    </div>
+  </div>
+  <script>
+    let allSpecs = [];
+    let activeFilter = null;
+
+    async function load() {
+      const res = await fetch('/api/specs');
+      allSpecs = await res.json();
+      renderToolbar();
+      renderSpecs();
+    }
+
+    function renderToolbar() {
+      const toolbar = document.getElementById('toolbar');
+      if (allSpecs.length === 0) { toolbar.style.display = 'none'; return; }
+      toolbar.style.display = 'flex';
+
+      // Build filter buttons from unique statuses
+      const statuses = [...new Set(allSpecs.map(s => s.status))].sort();
+      const filterDiv = document.getElementById('filter-buttons');
+      filterDiv.innerHTML = statuses.map(s =>
+        `<button class="filter-btn" data-status="${s}">${s.replace('_', ' ')}</button>`
+      ).join('');
+
+      filterDiv.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const status = btn.dataset.status;
+          if (activeFilter === status) {
+            activeFilter = null;
+            btn.classList.remove('active');
+          } else {
+            activeFilter = status;
+            filterDiv.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+          }
+          renderSpecs();
+        });
+      });
+    }
+
+    function renderSpecs() {
+      const el = document.getElementById('content');
+      const query = document.getElementById('search').value.toLowerCase().trim();
+      const sort = document.getElementById('sort').value;
+
+      let filtered = allSpecs;
+
+      // Filter by status
+      if (activeFilter) {
+        filtered = filtered.filter(s => s.status === activeFilter);
+      }
+
+      // Filter by search
+      if (query) {
+        filtered = filtered.filter(s =>
+          s.title.toLowerCase().includes(query) ||
+          s.id.toLowerCase().includes(query) ||
+          (s.template || '').toLowerCase().includes(query)
+        );
+      }
+
+      // Sort
+      filtered = [...filtered].sort((a, b) => {
+        switch (sort) {
+          case 'created': return new Date(b.createdAt) - new Date(a.createdAt);
+          case 'title': return a.title.localeCompare(b.title);
+          case 'version': return b.version - a.version;
+          default: return new Date(b.updatedAt) - new Date(a.updatedAt);
+        }
+      });
+
+      // Result count
+      const countEl = document.getElementById('result-count');
+      if (query || activeFilter) {
+        countEl.textContent = `${filtered.length} of ${allSpecs.length} specs`;
+      } else {
+        countEl.textContent = `${allSpecs.length} spec${allSpecs.length !== 1 ? 's' : ''}`;
+      }
+
+      if (allSpecs.length === 0) {
+        countEl.textContent = '';
+        el.innerHTML = `
+          <div class="empty">
+            <p>No specs yet.</p>
+            <p>Ask your agent to create one, or run <code>agentspecs init</code></p>
+          </div>
+        `;
+        return;
+      }
+
+      if (filtered.length === 0) {
+        el.innerHTML = `<div class="empty"><p>No specs match your search.</p></div>`;
+        return;
+      }
+
+      el.innerHTML = `<div class="spec-list">${filtered.map(s => `
+        <a href="/specs/${s.id}" class="spec-card">
+          <div class="spec-card-header">
+            <span class="spec-card-title">${esc(s.title)}</span>
+            <span class="badge badge-${s.status}">${s.status.replace('_', ' ')}</span>
+            ${s.template ? `<span class="spec-card-template">${esc(s.template)}</span>` : ''}
+          </div>
+          <div class="spec-card-meta">
+            <span>v${s.version}</span>
+            <span>·</span>
+            <span>updated ${timeAgo(new Date(s.updatedAt))}</span>
+          </div>
+        </a>
+      `).join('')}</div>`;
+    }
+
+    function timeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      if (seconds < 60) return 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      return date.toLocaleDateString();
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    document.getElementById('search').addEventListener('input', renderSpecs);
+    document.getElementById('sort').addEventListener('change', renderSpecs);
+
+    const ws = new WebSocket(`ws://${location.host}`);
+    ws.onmessage = () => load();
+    load();
+  </script>
+</body>
+</html>
