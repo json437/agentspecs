@@ -1,6 +1,6 @@
 {
   "name": "@json437/agentspecs",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A Claude Code plugin that turns specs into beautiful, interactive documents.",
   "type": "module",
   "bin": {
