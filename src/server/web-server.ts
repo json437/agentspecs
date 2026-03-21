@@ -25,7 +25,14 @@ export function broadcast(event: string, data: unknown): void {
   }
 }
 
-export function startWebServer(port: number): void {
+let actualPort: number = 0;
+
+export function getPort(): number {
+  return actualPort;
+}
+
+export function startWebServer(port: number): Promise<number> {
+  return new Promise((resolve) => {
   const app = new Hono();
 
   // API routes
@@ -136,7 +143,10 @@ export function startWebServer(port: number): void {
   });
 
   const server = serve({ fetch: app.fetch, port }, () => {
-    console.error(`agentspecs web server running at http://localhost:${port}`);
+    const addr = (server as any).address?.();
+    actualPort = addr?.port ?? port;
+    console.error(`agentspecs web server running at http://localhost:${actualPort}`);
+    resolve(actualPort);
   });
 
   (server as any).on?.("error", (err: NodeJS.ErrnoException) => {
@@ -152,5 +162,6 @@ export function startWebServer(port: number): void {
   wss.on("connection", (ws) => {
     clients.add(ws);
     ws.on("close", () => clients.delete(ws));
+  });
   });
 }

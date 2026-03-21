@@ -72,7 +72,8 @@ program
           name: "agentspecs",
           runtimeExecutable: "node",
           runtimeArgs: ["node_modules/@json437/agentspecs/dist/src/server/index.js", "--serve-only"],
-          port: 7575
+          port: 7575,
+          autoPort: true
         }]
       }, null, 2) + "\n");
       console.log("  Created .claude/launch.json (preview_start support)");
@@ -86,7 +87,8 @@ program
             name: "agentspecs",
             runtimeExecutable: "node",
             runtimeArgs: ["node_modules/@json437/agentspecs/dist/src/server/index.js", "--serve-only"],
-            port: 7575
+            port: 7575,
+            autoPort: true
           });
           writeFileSync(launchPath, JSON.stringify(existing, null, 2) + "\n");
           console.log("  Added agentspecs to existing .claude/launch.json");
@@ -109,7 +111,7 @@ This project uses [agentspecs](https://github.com/json437/agentspecs) for specif
 - Before implementing a feature, check for an existing spec: use \`list_specs\`
 - When writing new features, create or update the relevant spec first
 - Use \`get_feedback\` to check for inline feedback from reviewers
-- Specs are rendered at http://localhost:7575 — use \`preview_start("agentspecs")\` to launch
+- Use \`preview_start("agentspecs")\` to launch the spec viewer, or run \`npx agentspecs serve\`
 `;
 
     if (!existsSync(claudeMdPath)) {
@@ -133,19 +135,19 @@ program
   .command("serve")
   .description("Start the agentspecs web server")
   .option("-p, --port <port>", "Port to listen on")
-  .action((opts) => {
+  .action(async (opts) => {
     setProjectDir(process.cwd());
     initProject();
     const config = getConfig(getProjectDir());
     const port = opts.port ? parseInt(opts.port) : config.port;
 
-    startWebServer(port);
+    const actualPort = await startWebServer(port);
     watchSpecs(getProjectDir(), (specId) => {
       console.log(`Spec changed: ${specId}`);
       broadcast("spec:updated", { specId });
     });
 
-    console.log(`agentspecs server running at http://localhost:${port}`);
+    console.log(`agentspecs server running at http://localhost:${actualPort}`);
   });
 
 program

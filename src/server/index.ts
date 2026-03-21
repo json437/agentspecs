@@ -16,10 +16,11 @@ setProjectDir(projectDir);
 initProject();
 
 const config = getConfig(projectDir);
-const port = parseInt(process.env.PORT || process.env.AGENTSPECS_PORT || "") || config.port;
+const envPort = parseInt(process.env.PORT || process.env.AGENTSPECS_PORT || "");
+const port = envPort || config.port || 0; // 0 = random available port
 
 // Start web server + filesystem watcher
-startWebServer(port);
+const actualPort = await startWebServer(port);
 
 watchSpecs(projectDir, (specId) => {
   console.error(`Spec changed: ${specId}`);

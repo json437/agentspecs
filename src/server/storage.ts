@@ -55,7 +55,7 @@ export function initProject(projectDir: string): void {
   mkdirSync(join(dir, "specs"), { recursive: true });
   mkdirSync(join(dir, "templates"), { recursive: true });
   if (!existsSync(join(dir, "config.json"))) {
-    writeFileSync(join(dir, "config.json"), JSON.stringify({ port: 7575 }, null, 2));
+    writeFileSync(join(dir, "config.json"), JSON.stringify({ port: 0 }, null, 2));
   }
 }
 
@@ -136,6 +136,6 @@ export function deleteSpec(projectDir: string, id: string): boolean {
 
 export function getConfig(projectDir: string): { port: number } {
   const path = join(agentspecsDir(projectDir), "config.json");
-  if (!existsSync(path)) return { port: 7575 };
+  if (!existsSync(path)) return { port: 0 };
   return JSON.parse(readFileSync(path, "utf-8"));
 }

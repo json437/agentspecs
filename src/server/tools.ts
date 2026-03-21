@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import * as engine from "./spec-engine.js";
-import { getConfig } from "./storage.js";
+import { getPort } from "./web-server.js";
 
 export function registerTools(server: McpServer): void {
   server.tool(
@@ -16,9 +16,8 @@ export function registerTools(server: McpServer): void {
         .describe("Optional template type"),
     },
     async ({ title, content, template }) => {
-      const config = getConfig(engine.getProjectDir());
       const result = engine.createSpec({ title, content, template });
-      const url = `http://localhost:${config.port}/specs/${result.id}`;
+      const url = `http://localhost:${getPort()}/specs/${result.id}`;
       return {
         content: [
           {
