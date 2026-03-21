@@ -72,6 +72,7 @@ program
           name: "agentspecs",
           runtimeExecutable: "node",
           runtimeArgs: ["node_modules/@json437/agentspecs/dist/src/server/index.js", "--serve-only"],
+          cwd: "${workspaceFolder}",
           port: 7575,
           autoPort: true
         }]
